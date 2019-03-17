@@ -154,7 +154,8 @@ class SVM:
             return L
         return W_new
 
-def generate_data(category, train_x, train_labels, test_x, test_labels, pos_size = None):
+def generate_data(category, train_x, train_labels, test_x, test_labels, 
+                    pos_size = None, false_size = None, test_size = None):
     # Generating training data for SVM
 
     temp_train_x_pos = train_x[:, (train_labels == category)[0]]
@@ -174,9 +175,13 @@ def generate_data(category, train_x, train_labels, test_x, test_labels, pos_size
     temp_train_label_false = train_labels[:, (train_labels != category)[0]]
     temp_train_label_false[np.nonzero(temp_train_label_false)] = -1
 
-    sample_size_false = temp_train_label_false.shape[1]
+    if false_size == None:
+        false_size = temp_train_x_false.shape[1]        
+    selected_rows = random.sample(range(false_size),k=false_size)
 
-    selected_rows = random.sample(range(sample_size_false),k=3 * sample_size_pos)
+    #sample_size_false = temp_train_label_false.shape[1]
+
+    #selected_rows = random.sample(range(sample_size_false),k=3 * sample_size_pos)
 
     temp_train_x_false = temp_train_x_false[:, selected_rows]
     temp_train_label_false = temp_train_label_false[:, selected_rows]
@@ -207,9 +212,18 @@ def generate_data(category, train_x, train_labels, test_x, test_labels, pos_size
     svm_test_label = np.concatenate((temp_test_label_pos, temp_test_label_false), axis = 1)
     
     final_train_sz = svm_train_x.shape[1]
+
     selected_rows = random.sample(range(final_train_sz),k=final_train_sz)
     svm_train_x = svm_train_x.T[selected_rows].T
     svm_train_label = svm_train_label.T[selected_rows].T
+
+    if test_size == None:
+        test_size = svm_test_x.shape[1]
+
+    selected_rows = random.sample(range(test_size),k=test_size)
+
+    svm_test_x = svm_test_x[:, selected_rows]
+    svm_test_label = svm_test_label[:, selected_rows]
 
     return (svm_train_x, svm_train_label, svm_test_x, svm_test_label)
 
@@ -244,21 +258,31 @@ def test_mnist():
     svm_test_labels = []
 
     category = 1
+    positive_sample_num = 1000
+    false_sample_num = 3000
+    test_num = None
     
+    print("Start generating data...")
     (svm_train_x, svm_train_label, svm_test_x, svm_test_label) = \
-        generate_data(category, train_x, train_labels, test_x, test_labels)
-
-    print(svm_train_label)
-    #exit()
-    sample_nums = svm_train_x.shape[1]
-
+        generate_data(category, train_x, train_labels, test_x, test_labels, 
+        positive_sample_num, false_sample_num, test_num)
+    print("Generating data successful...")
+    print(svm_train_x.shape)
     print(svm_test_x.shape)
 
-    radical_basis.sigma = 8
-    svm = SVM(sample_nums, svm_train_x, svm_train_label, radical_basis)
-    svm.train(max_iter=100)
-    print(svm.test(svm_train_x, svm_train_label))
+    sample_nums = svm_train_x.shape[1]
 
+    radical_basis.sigma = 8
+    print("Init SVM and GRAM Matrix...")
+    svm = SVM(sample_nums, svm_train_x, svm_train_label, radical_basis)
+    print("Initialization successful")
+    print("Start training...")
+    svm.train(max_iter=100)
+    print("Training successful")
+
+    #print(svm.test(svm_train_x, svm_train_label))
+    print("Start testing...")
     print(svm.test(svm_test_x, svm_test_label))
+    print("Testing successful")
 
 test_mnist()
