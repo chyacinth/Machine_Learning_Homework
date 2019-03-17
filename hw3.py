@@ -261,6 +261,9 @@ def test_mnist():
     positive_sample_num = 600
     false_sample_num = 1000
     test_num = None
+    print(positive_sample_num)
+    print(false_sample_num)
+    print(test_num)
     
     print("Start generating data...")
     (svm_train_x, svm_train_label, svm_test_x, svm_test_label) = \
