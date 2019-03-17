@@ -12,4 +12,4 @@
 #SBATCH --mail-type=end     # email me when the job finishes
 
 # run the executable named a.out
-ibrun python3 hw3.py
+python3 hw3.py

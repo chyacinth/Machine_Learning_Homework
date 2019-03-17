@@ -62,7 +62,7 @@ class SVM:
         self.max_iter = max_iter
         self.epsilon = 10
         
-        iteration = 1
+        iteration = 0
         
         while iteration <= self.max_iter:            
             # select Wi and Wj to update. Select those make |E1-E2| maximal
@@ -258,8 +258,8 @@ def test_mnist():
     svm_test_labels = []
 
     category = 1
-    positive_sample_num = 1000
-    false_sample_num = 3000
+    positive_sample_num = 600
+    false_sample_num = 1000
     test_num = None
     
     print("Start generating data...")
