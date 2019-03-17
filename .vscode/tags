@@ -1,0 +1,24 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+LA	../hw3.py	/^from numpy import linalg as LA$/;"	kind:namespace	line:4
+SVM	../hw3.py	/^class SVM:$/;"	kind:class	line:20
+__init__	../hw3.py	/^    def __init__(self, N, train_x, train_labels, kernel):$/;"	kind:member	line:26
+clip	../hw3.py	/^    def clip(self, W_new, L, H):$/;"	kind:member	line:150
+generate_data	../hw3.py	/^def generate_data(category, train_x, train_labels, test_x, test_labels, pos_size = None):$/;"	kind:function	line:157
+hw3.py	../hw3.py	1;"	kind:file	line:1
+loadmat	../hw3.py	/^from scipy.io import loadmat$/;"	kind:namespace	line:1
+math	../hw3.py	/^import math$/;"	kind:namespace	line:5
+np	../hw3.py	/^import numpy as np$/;"	kind:namespace	line:2
+pred	../hw3.py	/^    def pred(self, x):$/;"	kind:member	line:140
+pred_with_id	../hw3.py	/^    def pred_with_id(self, j):$/;"	kind:member	line:128
+radical_basis	../hw3.py	/^def radical_basis(x, y):$/;"	kind:function	line:15
+random	../hw3.py	/^import random$/;"	kind:namespace	line:3
+test	../hw3.py	/^    def test(self, test_x, test_label):$/;"	kind:member	line:118
+test_mnist	../hw3.py	/^def test_mnist():$/;"	kind:function	line:226
+test_xor	../hw3.py	/^def test_xor():$/;"	kind:function	line:216
+train	../hw3.py	/^    def train(self, C=1, max_iter=50, epsilon=10):$/;"	kind:member	line:60
+xor_kernel_3	../hw3.py	/^def xor_kernel_3(x, y):$/;"	kind:function	line:7
