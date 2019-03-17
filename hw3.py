@@ -3,6 +3,8 @@ import numpy as np
 import random
 from numpy import linalg as LA
 import math
+from datetime import datetime
+random.seed(datetime.now())
 
 def xor_kernel_3(x, y):
     assert x.shape == y.shape, "kernel arguments do not have the same shape"
@@ -42,13 +44,14 @@ class SVM:
             for j in range(i+1):
                 self.Gram[i][j] = kernel(self.train_x.T[i], self.train_x.T[j])
                 self.Gram[j][i] = self.Gram[i][j]
-                
+        
+        self.update_pred()
         print(self.Gram)
 
         # intrinsic variables
         self.feature_sz = train_x.shape[0]
         self.C = 1
-        self.epsilon = 10
+        self.epsilon = 0.001
         self.max_iter = 50
     
     """
@@ -57,33 +60,35 @@ class SVM:
         C: weight range
     """
     
-    def train(self, C=1, max_iter=50, epsilon=10):
+    def train(self, C=1, max_iter=50, epsilon=0.001):
         self.C = C
         self.max_iter = max_iter
-        self.epsilon = 10
+        self.epsilon = epsilon
         
         iteration = 0
         
-        while iteration <= self.max_iter:            
-            # select Wi and Wj to update. Select those make |E1-E2| maximal
-            max_E = 0
+        while iteration < self.max_iter:
+            # select Wi and Wj to update. Select those make |E1-E2| maximal            
             i = 0
             for i in random.sample(range(self.N),k=self.N):
                 Ei = self.pred_with_id(i) - self.labels[i]
+                max_E = 0
                 j = 0
+                tj = 0
                 for j in range(self.N):
                     Ej = self.pred_with_id(j) - self.labels[j]
-                    if abs(Ei - Ej) >= max_E:
+                    if abs(Ei - Ej) > max_E:
                         max_E = abs(Ei - Ej)
-                        break
-                
+                        tj = j
+
+                j = tj                        
                 yi = self.labels[i]
                 yj = self.labels[j]
                 Wi_old = self.W[i]
                 Wj_old = self.W[j]
                 
                 eta = self.Gram[i][i] + self.Gram[j][j] - 2 * self.Gram[i][j]
-                if (eta <= 0 + 0.00001):
+                if (eta <= 0 + self.epsilon):
                     continue
                 
                 Wj_new = Wj_old + yj * (Ei - Ej) / eta
@@ -101,20 +106,48 @@ class SVM:
                 Wj_new = self.clip(Wj_new, L, H)
                 Wi_new = Wi_old + yi * yj * (Wj_old - Wj_new)
                 self.W[j] = Wj_new
-                self.W[i] = Wi_new                 
+                self.W[i] = Wi_new                                 
+                bi_new = -Ei - yi * self.Gram[i][i] * (Wi_new - Wi_old) - yj * self.Gram[j][i] * (Wj_new - Wj_old) + self.b#+ Wi_old * yi * self.Gram[i][i] + Wj_old * yj * self.Gram[j][i] + self.b - \
+                             #       Wi_new * yi * self.Gram[i][i] - Wj_new * yj * self.Gram[j][i]
                 
-                bi_new = -Ei + Wi_old * yi * self.Gram[i][i] + Wj_old * yj * self.Gram[j][i] + self.b - \
-                                    Wi_new * yi * self.Gram[i][i] - Wj_new * yj * self.Gram[j][i]
-                
-                bj_new = -Ej - yi * self.Gram[i][j] * (Wi_new - Wi_old) - \
-                                yj * self.Gram[j][j] * (Wj_new - Wj_old) + self.b
+                bj_new = -Ej - yi * self.Gram[i][j] * (Wi_new - Wi_old) - yj * self.Gram[j][j] * (Wj_new - Wj_old) + self.b #yi * self.Gram[i][j] * (Wi_new - Wi_old) - \
+                                #yj * self.Gram[j][j] * (Wj_new - Wj_old) + self.b
                 
                 b_new = (bi_new + bj_new) / 2
                 self.b = b_new
-                
-            iteration += 1
+                self.update_pred()
+
+            iteration += 1            
             print("{}th iteration finishes".format(iteration))
-        
+            if iteration % 5 == 0:
+                KKT_satisfy = True
+                if ((self.W >= (0 - self.epsilon)) & (self.W <= (self.C + self.epsilon))).size > 0:
+                    KKT_satisfy = False
+
+                if KKT_satisfy:
+                    if abs(np.matmul(self.W, self.labels)) > self.epsilon:
+                        KKT_satisfy = False
+
+                if KKT_satisfy:
+                    tmp = self.labels * self.prediction
+                    for i in range(self.N):
+                        if self.W[i] <= 0:
+                            if tmp[i] < 1 - self.epsilon:
+                                KKT_satisfy = False
+                                break
+                        elif self.W[i] >= C:
+                            if tmp[i] > 1 + self.epsilon:
+                                KKT_satisfy = False
+                                break
+                        else:
+                            if abs(tmp[i] - 1) > self.epsilon:
+                                KKT_satisfy = False
+                                break
+
+                if KKT_satisfy:
+                    print("Early stop!")
+                    break
+
     def test(self, test_x, test_label):
         assert len(test_x.shape) == 2, "test_x shape not right"
         sz = test_x.shape[1]
@@ -127,12 +160,18 @@ class SVM:
 
     def pred_with_id(self, j):
         
-        prediction = self.b
+        #prediction = self.b
         
-        prediction += (self.W * self.labels * self.Gram[j]).sum()
+        #prediction += (self.W * self.labels * self.Gram[j]).sum()
         
-        return prediction
+        return self.prediction[j]
     
+    def update_pred(self):
+
+        self.prediction = self.b
+
+        self.prediction += np.matmul(self.W * self.labels, self.Gram)
+
     """
     Args:
         x: input vector
@@ -155,7 +194,7 @@ class SVM:
         return W_new
 
 def generate_data(category, train_x, train_labels, test_x, test_labels, 
-                    pos_size = None, false_size = None, test_size = None):
+                    pos_size = None, false_size = None, test_pos_size = None, test_false_size = None):
     # Generating training data for SVM
 
     temp_train_x_pos = train_x[:, (train_labels == category)[0]]
@@ -164,24 +203,18 @@ def generate_data(category, train_x, train_labels, test_x, test_labels,
     
     if pos_size == None:
         pos_size = temp_train_x_pos.shape[1]
-    selected_rows = random.sample(range(pos_size),k=pos_size)
+    selected_rows = random.sample(range(temp_train_x_pos.shape[1]),k=pos_size)
 
     temp_train_x_pos = temp_train_x_pos[:, selected_rows]
     temp_train_label_pos = temp_train_label_pos[:, selected_rows]
-
-    sample_size_pos = temp_train_x_pos.shape[1]
-
+    
     temp_train_x_false = train_x[:, (train_labels != category)[0]]
     temp_train_label_false = train_labels[:, (train_labels != category)[0]]
     temp_train_label_false[np.nonzero(temp_train_label_false)] = -1
 
     if false_size == None:
-        false_size = temp_train_x_false.shape[1]        
-    selected_rows = random.sample(range(false_size),k=false_size)
-
-    #sample_size_false = temp_train_label_false.shape[1]
-
-    #selected_rows = random.sample(range(sample_size_false),k=3 * sample_size_pos)
+        false_size = temp_train_x_false.shape[1]
+    selected_rows = random.sample(range(temp_train_x_false.shape[1]),k=false_size)
 
     temp_train_x_false = temp_train_x_false[:, selected_rows]
     temp_train_label_false = temp_train_label_false[:, selected_rows]
@@ -189,41 +222,38 @@ def generate_data(category, train_x, train_labels, test_x, test_labels,
     svm_train_x = np.concatenate((temp_train_x_pos, temp_train_x_false), axis = 1)
     svm_train_label = np.concatenate((temp_train_label_pos, temp_train_label_false), axis = 1)
     
-    
+    final_train_sz = svm_train_x.shape[1]
+    selected_rows = random.sample(range(final_train_sz),k=final_train_sz)
+
+    svm_train_x = svm_train_x[:, selected_rows]
+    svm_train_label = svm_train_label[:, selected_rows]
+
+
     # Generating testing data for SVM    
     temp_test_x_pos = test_x[:, (test_labels == category)[0]]
     temp_test_label_pos = test_labels[:, (test_labels == category)[0]]
     temp_test_label_pos[np.nonzero(temp_test_label_pos)] = 1
 
-    sample_size_pos = temp_test_x_pos.shape[1]
+    if test_pos_size == None:
+        test_pos_size = temp_test_x_pos.shape[1]
+    selected_rows = random.sample(range(temp_test_x_pos.shape[1]),k=test_pos_size)
+
+    temp_test_x_pos = temp_test_x_pos[:, selected_rows]
+    temp_test_label_pos = temp_test_label_pos[:, selected_rows]
 
     temp_test_x_false = test_x[:, (test_labels != category)[0]]
     temp_test_label_false = test_labels[:, (test_labels != category)[0]]
     temp_test_label_false[np.nonzero(temp_test_label_false)] = -1
 
-    #sample_size_false = temp_test_label_false.shape[1]
+    if test_false_size == None:
+        test_false_size = temp_test_x_false.shape[1]
+    selected_rows = random.sample(range(temp_test_x_false.shape[1]),k=test_false_size)
 
-    #selected_rows = random.sample(range(sample_size_false),k=sample_size_pos)
-
-    #temp_test_x_false = temp_test_x_false[:, selected_rows]
-    #temp_test_label_false = temp_test_label_false[:, selected_rows]
+    temp_test_x_false = temp_test_x_false[:, selected_rows]
+    temp_test_label_false = temp_test_label_false[:, selected_rows]    
 
     svm_test_x = np.concatenate((temp_test_x_pos, temp_test_x_false), axis = 1)
     svm_test_label = np.concatenate((temp_test_label_pos, temp_test_label_false), axis = 1)
-    
-    final_train_sz = svm_train_x.shape[1]
-
-    selected_rows = random.sample(range(final_train_sz),k=final_train_sz)
-    svm_train_x = svm_train_x.T[selected_rows].T
-    svm_train_label = svm_train_label.T[selected_rows].T
-
-    if test_size == None:
-        test_size = svm_test_x.shape[1]
-
-    selected_rows = random.sample(range(test_size),k=test_size)
-
-    svm_test_x = svm_test_x[:, selected_rows]
-    svm_test_label = svm_test_label[:, selected_rows]
 
     return (svm_train_x, svm_train_label, svm_test_x, svm_test_label)
 
@@ -234,7 +264,7 @@ def test_xor():
     
     svm = SVM(sample_nums, train_x, train_labels, xor_kernel_3)
     
-    svm.train(C=1, max_iter=30)
+    svm.train(C=1, max_iter=100)
     print(svm.test(train_x, train_labels))
 
 def test_mnist():
@@ -258,29 +288,31 @@ def test_mnist():
     svm_test_labels = []
 
     category = 1
-    positive_sample_num = 600
+    positive_sample_num =1000
     false_sample_num = 1000
-    test_num = None
+    test_pos_num = 200
+    test_false_num = 200
     print(positive_sample_num)
     print(false_sample_num)
-    print(test_num)
+    print(test_pos_num)
+    print(test_false_num)
     
     print("Start generating data...")
     (svm_train_x, svm_train_label, svm_test_x, svm_test_label) = \
         generate_data(category, train_x, train_labels, test_x, test_labels, 
-        positive_sample_num, false_sample_num, test_num)
+        positive_sample_num, false_sample_num, test_pos_num, test_false_num)
     print("Generating data successful...")
     print(svm_train_x.shape)
     print(svm_test_x.shape)
 
     sample_nums = svm_train_x.shape[1]
 
-    radical_basis.sigma = 8
+    radical_basis.sigma = 5
     print("Init SVM and GRAM Matrix...")
     svm = SVM(sample_nums, svm_train_x, svm_train_label, radical_basis)
     print("Initialization successful")
     print("Start training...")
-    svm.train(max_iter=100)
+    svm.train(max_iter=300, epsilon=0.1)
     print("Training successful")
 
     #print(svm.test(svm_train_x, svm_train_label))
