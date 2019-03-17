@@ -12,4 +12,5 @@
 #SBATCH --mail-type=end     # email me when the job finishes
 
 # run the executable named a.out
+module load python3/3.7.0
 python3 hw3.py
