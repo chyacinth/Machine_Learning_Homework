@@ -7,7 +7,7 @@
 #SBATCH -t 02:30:00         # run time (hh:mm:ss) - 1.5 hours
 
 # Slurm email notifications are now working on Lonestar 5 
-#SBATCH --mail-user=username@tacc.utexas.edu
+#SBATCH --mail-user=chyacinthz@gmail.com
 #SBATCH --mail-type=begin   # email me when the job starts
 #SBATCH --mail-type=end     # email me when the job finishes
 
