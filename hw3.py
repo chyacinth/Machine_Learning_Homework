@@ -176,7 +176,7 @@ def generate_data(category, train_x, train_labels, test_x, test_labels, pos_size
 
     sample_size_false = temp_train_label_false.shape[1]
 
-    selected_rows = random.sample(range(sample_size_false),k=sample_size_pos)
+    selected_rows = random.sample(range(sample_size_false),k=3 * sample_size_pos)
 
     temp_train_x_false = temp_train_x_false[:, selected_rows]
     temp_train_label_false = temp_train_label_false[:, selected_rows]
@@ -196,12 +196,12 @@ def generate_data(category, train_x, train_labels, test_x, test_labels, pos_size
     temp_test_label_false = test_labels[:, (test_labels != category)[0]]
     temp_test_label_false[np.nonzero(temp_test_label_false)] = -1
 
-    sample_size_false = temp_test_label_false.shape[1]
+    #sample_size_false = temp_test_label_false.shape[1]
 
-    selected_rows = random.sample(range(sample_size_false),k=sample_size_pos)
+    #selected_rows = random.sample(range(sample_size_false),k=sample_size_pos)
 
-    temp_test_x_false = temp_test_x_false[:, selected_rows]
-    temp_test_label_false = temp_test_label_false[:, selected_rows]
+    #temp_test_x_false = temp_test_x_false[:, selected_rows]
+    #temp_test_label_false = temp_test_label_false[:, selected_rows]
 
     svm_test_x = np.concatenate((temp_test_x_pos, temp_test_x_false), axis = 1)
     svm_test_label = np.concatenate((temp_test_label_pos, temp_test_label_false), axis = 1)
@@ -252,7 +252,7 @@ def test_mnist():
     #exit()
     sample_nums = svm_train_x.shape[1]
 
-    print(sample_nums)
+    print(svm_test_x.shape)
 
     radical_basis.sigma = 8
     svm = SVM(sample_nums, svm_train_x, svm_train_label, radical_basis)
