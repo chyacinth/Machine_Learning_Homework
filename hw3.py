@@ -5,7 +5,61 @@ from numpy import linalg as LA
 import math
 from datetime import datetime
 random.seed(datetime.now())
+def test_mnist():
 
+    category = 1
+
+    radical_basis_kernel.sigma = 5
+    polynomial_kernel.c = 1
+    polynomial_kernel.d = 2
+    
+    positive_sample_num = 300
+    false_sample_num = 700
+    test_pos_num = 1000
+    test_false_num = 1500
+
+    x = loadmat('digits.mat')
+    test_imgs = x['testImages']
+    train_imgs = x['trainImages']
+    test_labels = x['testLabels'].astype(np.int8)
+    train_labels = x['trainLabels'].astype(np.int8)
+    test_imgs = test_imgs.reshape(784, 10000)
+    train_imgs = train_imgs.reshape(784, 60000)
+    avg = train_imgs.mean(axis=1).reshape(784)
+    maxi = train_imgs.max(axis=1).reshape(784)
+    mini = train_imgs.min(axis=1).reshape(784)
+    maxmin = (maxi[:, None] - mini[:, None])
+    test_x = np.divide((test_imgs - avg[:, None]), maxmin, where=maxmin!=0)
+    train_x = np.divide((train_imgs - avg[:, None]), maxmin, where=maxmin!=0)
+
+    print(positive_sample_num)
+    print(false_sample_num)
+    print(test_pos_num)
+    print(test_false_num)
+    
+    print("Start generating data...")
+    (svm_train_x, svm_train_label, svm_test_x, svm_test_label) = \
+        generate_data(category, train_x, train_labels, test_x, test_labels, 
+        positive_sample_num, false_sample_num, test_pos_num, test_false_num)
+    print("Generating data successful...")
+    print(svm_train_x.shape)
+    print(svm_test_x.shape)
+
+    sample_nums = svm_train_x.shape[1]
+
+    
+    print("Init SVM and GRAM Matrix...")
+    svm = SVM(sample_nums, svm_train_x, svm_train_label, polynomial_kernel)
+    print("Initialization successful")
+    print("Start training...")
+    svm.train(max_iter=20, epsilon=0.1)
+    print("Training successful")
+
+    #print(svm.test(svm_train_x, svm_train_label))
+    print("Start testing...")
+    print(svm.test(svm_test_x, svm_test_label))
+    print("Testing successful")
+    
 def xor_3_kernel(x, y):
     assert x.shape == y.shape, "kernel arguments do not have the same shape"
     assert x.shape == (2,), "kernel arguments are not 1D vector"
@@ -273,59 +327,6 @@ def test_xor():
     svm.train(C=1, max_iter=100)
     print(svm.test(train_x, train_labels))
 
-def test_mnist():
 
-    category = 1
-
-    radical_basis_kernel.sigma = 5
-    polynomial_kernel.c = 1
-    polynomial_kernel.d = 2
-    
-    positive_sample_num = 300
-    false_sample_num = 700
-    test_pos_num = 1000
-    test_false_num = 1500
-
-    x = loadmat('digits.mat')
-    test_imgs = x['testImages']
-    train_imgs = x['trainImages']
-    test_labels = x['testLabels'].astype(np.int8)
-    train_labels = x['trainLabels'].astype(np.int8)
-    test_imgs = test_imgs.reshape(784, 10000)
-    train_imgs = train_imgs.reshape(784, 60000)
-    avg = train_imgs.mean(axis=1).reshape(784)
-    maxi = train_imgs.max(axis=1).reshape(784)
-    mini = train_imgs.min(axis=1).reshape(784)
-    maxmin = (maxi[:, None] - mini[:, None])
-    test_x = np.divide((test_imgs - avg[:, None]), maxmin, where=maxmin!=0)
-    train_x = np.divide((train_imgs - avg[:, None]), maxmin, where=maxmin!=0)
-
-    print(positive_sample_num)
-    print(false_sample_num)
-    print(test_pos_num)
-    print(test_false_num)
-    
-    print("Start generating data...")
-    (svm_train_x, svm_train_label, svm_test_x, svm_test_label) = \
-        generate_data(category, train_x, train_labels, test_x, test_labels, 
-        positive_sample_num, false_sample_num, test_pos_num, test_false_num)
-    print("Generating data successful...")
-    print(svm_train_x.shape)
-    print(svm_test_x.shape)
-
-    sample_nums = svm_train_x.shape[1]
-
-    
-    print("Init SVM and GRAM Matrix...")
-    svm = SVM(sample_nums, svm_train_x, svm_train_label, polynomial_kernel)
-    print("Initialization successful")
-    print("Start training...")
-    svm.train(max_iter=20, epsilon=0.1)
-    print("Training successful")
-
-    #print(svm.test(svm_train_x, svm_train_label))
-    print("Start testing...")
-    print(svm.test(svm_test_x, svm_test_label))
-    print("Testing successful")
 
 test_mnist()
