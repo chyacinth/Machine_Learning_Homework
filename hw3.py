@@ -5,7 +5,9 @@ from numpy import linalg as LA
 import math
 from datetime import datetime
 import sys
-random.seed(datetime.now())
+
+#random.seed(datetime.now())
+
 def test_mnist():
     polynomial_kernel.c = int(sys.argv[1])
     polynomial_kernel.d = int(sys.argv[2])
@@ -268,7 +270,7 @@ def generate_data(category, train_x, train_labels, test_x, test_labels,
     
     if pos_size == None:
         pos_size = temp_train_x_pos.shape[1]
-    selected_rows = random.sample(range(temp_train_x_pos.shape[1]),k=pos_size)
+    selected_rows = range(pos_size) #random.sample(range(temp_train_x_pos.shape[1]),k=pos_size)
 
     temp_train_x_pos = temp_train_x_pos[:, selected_rows]
     temp_train_label_pos = temp_train_label_pos[:, selected_rows]
@@ -279,7 +281,7 @@ def generate_data(category, train_x, train_labels, test_x, test_labels,
 
     if false_size == None:
         false_size = temp_train_x_false.shape[1]
-    selected_rows = random.sample(range(temp_train_x_false.shape[1]),k=false_size)
+    selected_rows = range(false_size) #random.sample(range(temp_train_x_false.shape[1]),k=false_size)
 
     temp_train_x_false = temp_train_x_false[:, selected_rows]
     temp_train_label_false = temp_train_label_false[:, selected_rows]
