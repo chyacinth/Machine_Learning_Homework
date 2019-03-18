@@ -42,7 +42,7 @@ def test_mnist():
     test_x = np.divide((test_imgs - avg[:, None]), maxmin, where=maxmin!=0)
     train_x = np.divide((train_imgs - avg[:, None]), maxmin, where=maxmin!=0)
 
-    print("positive_sample_num: {}".foramt(positive_sample_num))
+    print("positive_sample_num: {}".format(positive_sample_num))
     print("false_sample_num: {}".format(false_sample_num))
     print("test_pos_num: {}".format(test_pos_num))
     print("test_false_num: {}".format(test_false_num))
