@@ -10,6 +10,8 @@ def test_mnist():
     polynomial_kernel.c = int(sys.argv[1])
     polynomial_kernel.d = int(sys.argv[2])
 
+    print(polynomial_kernel.c)
+    print(polynomial_kernel.d)
     category = 1
 
     radical_basis_kernel.sigma = 5
