@@ -59,7 +59,7 @@ def test_mnist():
     print("Start testing...")
     print(svm.test(svm_test_x, svm_test_label))
     print("Testing successful")
-    
+
 def xor_3_kernel(x, y):
     assert x.shape == y.shape, "kernel arguments do not have the same shape"
     assert x.shape == (2,), "kernel arguments are not 1D vector"
@@ -296,7 +296,7 @@ def generate_data(category, train_x, train_labels, test_x, test_labels,
 
     if test_pos_size == None:
         test_pos_size = temp_test_x_pos.shape[1]
-    selected_rows = random.sample(range(temp_test_x_pos.shape[1]),k=test_pos_size)
+    selected_rows = range(test_pos_size) #random.sample(range(temp_test_x_pos.shape[1]),k=test_pos_size)
 
     temp_test_x_pos = temp_test_x_pos[:, selected_rows]
     temp_test_label_pos = temp_test_label_pos[:, selected_rows]
@@ -307,7 +307,7 @@ def generate_data(category, train_x, train_labels, test_x, test_labels,
 
     if test_false_size == None:
         test_false_size = temp_test_x_false.shape[1]
-    selected_rows = random.sample(range(temp_test_x_false.shape[1]),k=test_false_size)
+    selected_rows = range(test_false_size) #random.sample(range(temp_test_x_false.shape[1]),k=test_false_size)
 
     temp_test_x_false = temp_test_x_false[:, selected_rows]
     temp_test_label_false = temp_test_label_false[:, selected_rows]    
