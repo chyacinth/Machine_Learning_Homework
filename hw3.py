@@ -6,7 +6,7 @@ import math
 from datetime import datetime
 random.seed(datetime.now())
 
-def xor_kernel_3(x, y):
+def xor_3_kernel(x, y):
     assert x.shape == y.shape, "kernel arguments do not have the same shape"
     assert x.shape == (2,), "kernel arguments are not 1D vector"
     
@@ -14,7 +14,12 @@ def xor_kernel_3(x, y):
                 x[0] * x[1] * y[0] * y[1] + \
                     (np.square(x[0]) + np.square(x[1])) * (np.square(y[0]) + np.square(y[1]))
 
-def radical_basis(x, y):
+def polynomial_kernel(x, y):    
+    assert x.shape == y.shape, "kernel arguments do not have the same shape"
+    assert len(x.shape)  == 1
+    return (np.dot(x, y) + polynomial_kernel.c) ** polynomial_kernel.d
+
+def radical_basis_kernel(x, y):
     assert x.shape == y.shape, "kernel arguments do not have the same shape"
     # print (LA.norm(x - y))
     return math.exp(-np.square(LA.norm(x - y))/(2 * np.square(radical_basis.sigma)))
@@ -268,6 +273,18 @@ def test_xor():
     print(svm.test(train_x, train_labels))
 
 def test_mnist():
+
+    category = 1
+
+    radical_basis_kernel.sigma = 5
+    polynomial_kernel.c = 1
+    polynomial_kernel.d = 2
+    
+    positive_sample_num =1000
+    false_sample_num = 2000
+    test_pos_num = None
+    test_false_num = None
+
     x = loadmat('digits.mat')
     test_imgs = x['testImages']
     train_imgs = x['trainImages']
@@ -282,16 +299,6 @@ def test_mnist():
     test_x = np.divide((test_imgs - avg[:, None]), maxmin, where=maxmin!=0)
     train_x = np.divide((train_imgs - avg[:, None]), maxmin, where=maxmin!=0)
 
-    svm_train_xs = []
-    svm_train_labels = []
-    svm_test_xs = []
-    svm_test_labels = []
-
-    category = 1
-    positive_sample_num =1000
-    false_sample_num = 1000
-    test_pos_num = 200
-    test_false_num = 200
     print(positive_sample_num)
     print(false_sample_num)
     print(test_pos_num)
@@ -307,12 +314,12 @@ def test_mnist():
 
     sample_nums = svm_train_x.shape[1]
 
-    radical_basis.sigma = 5
+    
     print("Init SVM and GRAM Matrix...")
-    svm = SVM(sample_nums, svm_train_x, svm_train_label, radical_basis)
+    svm = SVM(sample_nums, svm_train_x, svm_train_label, polynomial_kernel)
     print("Initialization successful")
     print("Start training...")
-    svm.train(max_iter=300, epsilon=0.1)
+    svm.train(max_iter=10, epsilon=0.1)
     print("Training successful")
 
     #print(svm.test(svm_train_x, svm_train_label))
