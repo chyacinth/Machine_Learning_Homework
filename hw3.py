@@ -8,12 +8,12 @@ import sys
 
 #random.seed(datetime.now())
 
-def test_mnist():
+def test_mnist():    
     polynomial_kernel.c = int(sys.argv[1])
     polynomial_kernel.d = int(sys.argv[2])
 
-    print(polynomial_kernel.c)
-    print(polynomial_kernel.d)
+    print("c is {}".format(polynomial_kernel.c))
+    print("d is {}".format(polynomial_kernel.d))
     category = 1
 
     radical_basis_kernel.sigma = 5
@@ -184,7 +184,8 @@ class SVM:
                 self.update_pred()
 
             iteration += 1            
-            print("{}th iteration finishes".format(iteration))
+            if iteration % 30 == 0:
+                print("{}th iteration finishes".format(iteration))
             if iteration % 5 == 0:
                 KKT_satisfy = True
                 if ((self.W >= (0 - self.epsilon)) & (self.W <= (self.C + self.epsilon))).size > 0:
@@ -335,5 +336,6 @@ def test_xor():
     print(svm.test(train_x, train_labels))
 
 
-
+print("--------------------Begin----------------------")
 test_mnist()
+print("---------------------End-----------------------")
