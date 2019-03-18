@@ -9,7 +9,7 @@ import sys
 #random.seed(datetime.now())
 
 def test_mnist():    
-    polynomial_kernel.c = int(sys.argv[1])
+    polynomial_kernel.c = float(sys.argv[1])
     polynomial_kernel.d = int(sys.argv[2])
 
     print("c is {}".format(polynomial_kernel.c))
@@ -20,10 +20,10 @@ def test_mnist():
     
     
     
-    positive_sample_num = 300
+    positive_sample_num = 500
     false_sample_num = 700
-    test_pos_num = 1000
-    test_false_num = 1500
+    test_pos_num = None
+    test_false_num = None
 
     x = loadmat('digits.mat')
     test_imgs = x['testImages']
@@ -61,8 +61,7 @@ def test_mnist():
     print("Start training...")
     svm.train(C=0.7, max_iter=50, epsilon=0.00001)
     print("Training successful")
-
-    #print(svm.test(svm_train_x, svm_train_label))
+    
     print("Start testing...")
     print(svm.test(svm_test_x, svm_test_label))
     print("Testing successful")
@@ -241,14 +240,38 @@ class SVM:
 
     def test(self, test_x, test_label):    
         assert len(test_x.shape) == 2, "test_x shape not right"
-        
+        tp = 0
+        fn = 0
+        fp = 0
+        tn = 0
+        no = 0
         sz = test_x.shape[1]
         correct = 0        
-        for i in range(sz):            
-            if self.pred(test_x.T[i]) * test_label[0][i] > 0:
+        for i in range(sz):
+            prediction = self.pred(test_x.T[i])
+            label = test_label[0][i]
+            if (prediction > 0 and label > 0):
+                tp += 1                
                 correct += 1
-        
-        return correct / sz
+            if (prediction > 0 and label < 0):
+                fp += 1
+            if (prediction < 0 and label > 0):
+                fn += 1
+            if (prediction < 0 and label < 0):
+                tn += 1
+                correct += 1
+
+            if (label == 0):
+                no += 1
+        print("size: {}".format(sz))
+        print("true positive: {}".format(tp))
+        print("false positive: {}".format(fp))
+        print("false negative: {}".format(fn))
+        print("true negative: {}".format(tn))
+        print("zero: {}".format(no))
+        print("precision: {}".format(tp / (tp + fp)))
+        print("recall: {}".format(tp / (tp + fn)))
+        print("plain accuracy: {}".format(correct / sz))
 
     def pred_with_id(self, j):
         
@@ -291,7 +314,7 @@ def generate_data(category, train_x, train_labels, test_x, test_labels,
 
     temp_train_x_pos = train_x[:, (train_labels == category)[0]]
     temp_train_label_pos = train_labels[:, (train_labels == category)[0]]
-    temp_train_label_pos[np.nonzero(temp_train_label_pos)] = 1
+    temp_train_label_pos[:, :] = 1
     
     if pos_size == None:
         pos_size = temp_train_x_pos.shape[1]
@@ -302,7 +325,7 @@ def generate_data(category, train_x, train_labels, test_x, test_labels,
     
     temp_train_x_false = train_x[:, (train_labels != category)[0]]
     temp_train_label_false = train_labels[:, (train_labels != category)[0]]
-    temp_train_label_false[np.nonzero(temp_train_label_false)] = -1
+    temp_train_label_false[:, :] = -1
 
     if false_size == None:
         false_size = temp_train_x_false.shape[1]
@@ -324,7 +347,7 @@ def generate_data(category, train_x, train_labels, test_x, test_labels,
     # Generating testing data for SVM    
     temp_test_x_pos = test_x[:, (test_labels == category)[0]]
     temp_test_label_pos = test_labels[:, (test_labels == category)[0]]
-    temp_test_label_pos[np.nonzero(temp_test_label_pos)] = 1
+    temp_test_label_pos[:, :] = 1
 
     if test_pos_size == None:
         test_pos_size = temp_test_x_pos.shape[1]
@@ -335,7 +358,7 @@ def generate_data(category, train_x, train_labels, test_x, test_labels,
 
     temp_test_x_false = test_x[:, (test_labels != category)[0]]
     temp_test_label_false = test_labels[:, (test_labels != category)[0]]
-    temp_test_label_false[np.nonzero(temp_test_label_false)] = -1
+    temp_test_label_false[:, :] = -1
 
     if test_false_size == None:
         test_false_size = temp_test_x_false.shape[1]
