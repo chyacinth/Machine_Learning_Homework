@@ -284,7 +284,7 @@ def test_mnist():
     positive_sample_num = 300
     false_sample_num = 700
     test_pos_num = 1000
-    test_false_num = 1000
+    test_false_num = 1500
 
     x = loadmat('digits.mat')
     test_imgs = x['testImages']
