@@ -4,14 +4,17 @@ import random
 from numpy import linalg as LA
 import math
 from datetime import datetime
+import sys
 random.seed(datetime.now())
 def test_mnist():
+    polynomial_kernel.c = int(sys.argv[1])
+    polynomial_kernel.d = int(sys.argv[2])
 
     category = 1
 
     radical_basis_kernel.sigma = 5
-    polynomial_kernel.c = 1
-    polynomial_kernel.d = 2
+    
+    
     
     positive_sample_num = 300
     false_sample_num = 700
