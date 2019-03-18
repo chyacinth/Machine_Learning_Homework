@@ -59,7 +59,7 @@ def test_mnist():
     svm = SVM(sample_nums, svm_train_x, svm_train_label, polynomial_kernel)
     print("Initialization successful")
     print("Start training...")
-    svm.train(C=0.7, max_iter=40, epsilon=0.0001)
+    svm.train(C=0.7, max_iter=50, epsilon=0.00001)
     print("Training successful")
 
     #print(svm.test(svm_train_x, svm_train_label))
@@ -178,7 +178,7 @@ class SVM:
                 self.W[j] = Wj_new
                 self.W[i] = Wi_new
 
-                if abs(Wj_new - Wj_old) < 0.00001:
+                if abs(Wj_new - Wj_old) < self.epsilon:
                     continue
 
                 bi_new = -Ei - yi * self.Gram[i][i] * (Wi_new - Wi_old) - yj * self.Gram[j][i] * (Wj_new - Wj_old) + self.b#+ Wi_old * yi * self.Gram[i][i] + Wj_old * yj * self.Gram[j][i] + self.b - \
