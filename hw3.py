@@ -8,6 +8,82 @@ import sys
 
 #random.seed(datetime.now())
 
+def test_multi_class_svm():
+    x = loadmat('digits.mat')
+    test_imgs = x['testImages']
+    train_imgs = x['trainImages']
+    test_labels = x['testLabels'].astype(np.int8)
+    train_labels = x['trainLabels'].astype(np.int8)
+    test_imgs = test_imgs.reshape(784, 10000)
+    train_imgs = train_imgs.reshape(784, 60000)
+    avg = train_imgs.mean(axis=1).reshape(784)
+    maxi = train_imgs.max(axis=1).reshape(784)
+    mini = train_imgs.min(axis=1).reshape(784)
+    maxmin = (maxi[:, None] - mini[:, None])
+    test_x = np.divide((test_imgs - avg[:, None]), maxmin, where=maxmin!=0)
+    train_x = np.divide((train_imgs - avg[:, None]), maxmin, where=maxmin!=0)
+    svms = []
+    test_size = test_x.shape[1]
+
+    categories = 10
+
+    for i in range (categories):
+        svms.append(test_mnist_with_category(i, train_x, train_labels, test_x, test_labels))
+    
+    correct = 0
+
+    print("Start Testing")
+    for i in range(test_size):
+        maxi = 0
+        prediction = 0
+        for j in range(categories):
+            res = svms[j].pred(test_x.T[i])
+            if maxi < abs(res):
+                maxi = abs(res)
+                prediction = j
+        if prediction == test_labels[0][i]:
+            correct += 1
+    print("End Testing")
+    print("accuracy is: {}".format(correct/test_size))
+
+def test_mnist_with_category(category, train_x, train_labels, test_x, test_labels):    
+    radical_basis_kernel.sigma = 3
+    print("sigma is {}".format(radical_basis_kernel.sigma))
+    kernel = radical_basis_kernel
+    
+    positive_sample_num = 500
+    false_sample_num = 700
+    test_pos_num = 5
+    test_false_num = 7
+
+    print("positive_sample_num: {}".format(positive_sample_num))
+    print("false_sample_num: {}".format(false_sample_num))
+    print("test_pos_num: {}".format(test_pos_num))
+    print("test_false_num: {}".format(test_false_num))
+    
+    print("Start generating data...")
+    (svm_train_x, svm_train_label, svm_test_x, svm_test_label) = \
+        generate_data(category, train_x, train_labels, test_x, test_labels, 
+        positive_sample_num, false_sample_num, test_pos_num, test_false_num)
+    print("Generating data successful...")    
+    print("SVM training size is: {}".format(svm_train_x.shape))
+    print("SVM testing size is: {}".format(svm_test_x.shape))
+
+    sample_nums = svm_train_x.shape[1]    
+    
+    print("Init SVM and GRAM Matrix...")
+    svm = SVM(sample_nums, svm_train_x, svm_train_label, kernel)
+    print("Initialization successful")
+    print("Start training...")
+    svm.train(C=1, max_iter=60, epsilon=0.000001)
+    print("Training successful")
+    
+    #print("Start testing...")
+    #print(svm.test(svm_test_x, svm_test_label))
+    #print("Testing successful")
+    return svm
+
+
 def test_mnist():
     kernel = None
     print(sys.argv[1] + " kernel")
@@ -62,7 +138,7 @@ def test_mnist():
     svm = SVM(sample_nums, svm_train_x, svm_train_label, kernel)
     print("Initialization successful")
     print("Start training...")
-    svm.train(C=1, max_iter=60, epsilon=0.000001)
+    svm.train(C=np.inf, max_iter=60, epsilon=0.000001)
     print("Training successful")
     
     print("Start testing...")
@@ -114,7 +190,7 @@ class SVM:
                 self.Gram[j][i] = self.Gram[i][j]
         
         self.update_pred()
-        print(self.Gram)
+        #print(self.Gram)
 
         # intrinsic variables
         self.feature_sz = train_x.shape[0]
@@ -212,6 +288,8 @@ class SVM:
             if real_it % 30 == 0:
                 print("{}th iteration finishes".format(real_it))
 
+            if real_it > 200:
+                break
             if real_it % 5 == 0:
                 KKT_satisfy = True
                 if ((self.W >= (0 - self.epsilon)) & (self.W <= (self.C + self.epsilon))).size > 0:
@@ -274,7 +352,7 @@ class SVM:
         print("zero: {}".format(no))
         print("precision: {}".format(np.float64(tp) / (tp + fp)))
         print("recall: {}".format(np.float64(tp) / (tp + fn)))
-        print("plain accuracy: {}".format(correct / sz))
+        print("plain accuracy: {}".format(correct / sz))        
 
     def pred_with_id(self, j):
         
@@ -387,5 +465,5 @@ def test_xor():
 
 
 print("--------------------Begin----------------------")
-test_mnist()
+test_multi_class_svm()
 print("---------------------End-----------------------")
