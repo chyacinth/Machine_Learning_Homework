@@ -8,17 +8,20 @@ import sys
 
 #random.seed(datetime.now())
 
-def test_mnist():    
-    polynomial_kernel.c = float(sys.argv[1])
-    polynomial_kernel.d = int(sys.argv[2])
-
-    print("c is {}".format(polynomial_kernel.c))
-    print("d is {}".format(polynomial_kernel.d))
+def test_mnist():
+    kernel = None
+    if (sys.argv[1] == 'poly'):
+        polynomial_kernel.c = float(sys.argv[2])
+        polynomial_kernel.d = int(sys.argv[3])
+        print("c is {}".format(polynomial_kernel.c))
+        print("d is {}".format(polynomial_kernel.d))
+        kernel = polynomial_kernel
+    elif (sys.argv[1] == 'radical'):
+        radical_basis_kernel.sigma = int(sys.argv[2])
+        print("sigma is {}".format(radical_basis_kernel.sigma))
+        kernel = radical_basis_kernel
+    
     category = 1
-
-    radical_basis_kernel.sigma = 5
-    
-    
     
     positive_sample_num = 500
     false_sample_num = 700
@@ -39,27 +42,27 @@ def test_mnist():
     test_x = np.divide((test_imgs - avg[:, None]), maxmin, where=maxmin!=0)
     train_x = np.divide((train_imgs - avg[:, None]), maxmin, where=maxmin!=0)
 
-    print(positive_sample_num)
-    print(false_sample_num)
-    print(test_pos_num)
-    print(test_false_num)
+    print("positive_sample_num: {}".foramt(positive_sample_num))
+    print("false_sample_num: {}".format(false_sample_num))
+    print("test_pos_num: {}".format(test_pos_num))
+    print("test_false_num: {}".format(test_false_num))
     
     print("Start generating data...")
     (svm_train_x, svm_train_label, svm_test_x, svm_test_label) = \
         generate_data(category, train_x, train_labels, test_x, test_labels, 
         positive_sample_num, false_sample_num, test_pos_num, test_false_num)
-    print("Generating data successful...")
-    print(svm_train_x.shape)
-    print(svm_test_x.shape)
+    print("Generating data successful...")    
+    print("SVM training size is: {}".format(svm_train_x.shape))
+    print("SVM testing size is: {}".format(svm_test_x.shape))
 
     sample_nums = svm_train_x.shape[1]
 
     
     print("Init SVM and GRAM Matrix...")
-    svm = SVM(sample_nums, svm_train_x, svm_train_label, polynomial_kernel)
+    svm = SVM(sample_nums, svm_train_x, svm_train_label, kernel)
     print("Initialization successful")
     print("Start training...")
-    svm.train(C=0.7, max_iter=50, epsilon=0.00001)
+    svm.train(C=1, max_iter=50, epsilon=0.00001)
     print("Training successful")
     
     print("Start testing...")
@@ -82,7 +85,7 @@ def polynomial_kernel(x, y):
 def radical_basis_kernel(x, y):
     assert x.shape == y.shape, "kernel arguments do not have the same shape"
     # print (LA.norm(x - y))
-    return math.exp(-np.square(LA.norm(x - y))/(2 * np.square(radical_basis.sigma)))
+    return math.exp(-np.square(LA.norm(x - y))/(2 * np.square(radical_basis_kernel.sigma)))
 
 class SVM:
     """
@@ -111,7 +114,7 @@ class SVM:
                 self.Gram[j][i] = self.Gram[i][j]
         
         self.update_pred()
-        print(self.Gram)
+        #print(self.Gram)
 
         # intrinsic variables
         self.feature_sz = train_x.shape[0]
@@ -269,8 +272,8 @@ class SVM:
         print("false negative: {}".format(fn))
         print("true negative: {}".format(tn))
         print("zero: {}".format(no))
-        print("precision: {}".format(tp / (tp + fp)))
-        print("recall: {}".format(tp / (tp + fn)))
+        print("precision: {}".format(np.float64(tp) / (tp + fp)))
+        print("recall: {}".format(np.float64(tp) / (tp + fn)))
         print("plain accuracy: {}".format(correct / sz))
 
     def pred_with_id(self, j):
@@ -380,7 +383,7 @@ def test_xor():
     svm = SVM(sample_nums, train_x, train_labels, xor_3_kernel)
     
     svm.train(C=1, max_iter=100)
-    print(svm.test(train_x, train_labels))
+    svm.test(train_x, train_labels)
 
 
 print("--------------------Begin----------------------")
