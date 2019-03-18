@@ -4,7 +4,7 @@
 #SBATCH -N 1                # number of nodes requested
 #SBATCH -n 1               # total number of mpi tasks requested
 #SBATCH -p development      # queue (partition) -- normal, development, etc.
-#SBATCH -t 5:30:00         # run time (hh:mm:ss) - 1.5 hours
+#SBATCH -t 2:00:00         # run time (hh:mm:ss) - 1.5 hours
 
 # Slurm email notifications are now working on Lonestar 5 
 #SBATCH --mail-user=chyacinthz@gmail.com
