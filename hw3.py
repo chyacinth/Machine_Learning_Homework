@@ -155,11 +155,9 @@ class SVM:
 
     def test(self, test_x, test_label):
         assert len(test_x.shape) == 2, "test_x shape not right"
-        sz = test_x.shape[1]
-        correct = 0        
-        for i in range(sz):            
-            if self.pred(test_x.T[i]) * test_label[0][i] > 0:
-                correct += 1
+
+        result = test_x.T * self.W + self.b
+        correct = (result == test_label).sum()
         
         return correct / sz
 
@@ -280,8 +278,8 @@ def test_mnist():
     polynomial_kernel.c = 1
     polynomial_kernel.d = 2
     
-    positive_sample_num =1000
-    false_sample_num = 2000
+    positive_sample_num =200
+    false_sample_num = 800
     test_pos_num = None
     test_false_num = None
 
@@ -319,7 +317,7 @@ def test_mnist():
     svm = SVM(sample_nums, svm_train_x, svm_train_label, polynomial_kernel)
     print("Initialization successful")
     print("Start training...")
-    svm.train(max_iter=10, epsilon=0.1)
+    svm.train(max_iter=5, epsilon=0.1)
     print("Training successful")
 
     #print(svm.test(svm_train_x, svm_train_label))
