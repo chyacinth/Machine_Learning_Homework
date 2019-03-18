@@ -59,7 +59,7 @@ def test_mnist():
     svm = SVM(sample_nums, svm_train_x, svm_train_label, polynomial_kernel)
     print("Initialization successful")
     print("Start training...")
-    svm.train(max_iter=1, epsilon=0.1)
+    svm.train(max_iter=150, epsilon=0.1)
     print("Training successful")
 
     #print(svm.test(svm_train_x, svm_train_label))
