@@ -4,7 +4,7 @@
 #SBATCH -N 1                # number of nodes requested
 #SBATCH -n 1               # total number of mpi tasks requested
 #SBATCH -p normal      # queue (partition) -- normal, development, etc.
-#SBATCH -t 02:30:00         # run time (hh:mm:ss) - 1.5 hours
+#SBATCH -t 5:30:00         # run time (hh:mm:ss) - 1.5 hours
 
 # Slurm email notifications are now working on Lonestar 5 
 #SBATCH --mail-user=chyacinthz@gmail.com
@@ -13,4 +13,44 @@
 
 # run the executable named a.out
 module load python3/3.7.0
-python3 hw3.py
+python3 hw3.py 0.001 0
+python3 hw3.py 0.001 1
+python3 hw3.py 0.001 2
+python3 hw3.py 0.001 4
+python3 hw3.py 0.001 8
+python3 hw3.py 0.001 16
+
+python3 hw3.py 0.01 0
+python3 hw3.py 0.01 1
+python3 hw3.py 0.01 2
+python3 hw3.py 0.01 4
+python3 hw3.py 0.01 8
+python3 hw3.py 0.01 16
+
+python3 hw3.py 0.1 0
+python3 hw3.py 0.1 1
+python3 hw3.py 0.1 2
+python3 hw3.py 0.1 4
+python3 hw3.py 0.1 8
+python3 hw3.py 0.1 16
+
+python3 hw3.py 1 0
+python3 hw3.py 1 1
+python3 hw3.py 1 2
+python3 hw3.py 1 4
+python3 hw3.py 1 8
+python3 hw3.py 1 16
+
+python3 hw3.py 10 0
+python3 hw3.py 10 1
+python3 hw3.py 10 2
+python3 hw3.py 10 4
+python3 hw3.py 10 8
+python3 hw3.py 10 16
+
+python3 hw3.py 100 0
+python3 hw3.py 100 1
+python3 hw3.py 100 2
+python3 hw3.py 100 4
+python3 hw3.py 100 8
+python3 hw3.py 100 16
