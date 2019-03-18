@@ -288,7 +288,7 @@ class SVM:
             if real_it % 30 == 0:
                 print("{}th iteration finishes".format(real_it))
 
-            if real_it > 200:
+            if self.C > 100 and real_it > 200:
                 break
             if real_it % 5 == 0:
                 KKT_satisfy = True
