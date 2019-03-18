@@ -10,6 +10,7 @@ import sys
 
 def test_mnist():
     kernel = None
+    print(sys.argv[1] + " kernel")
     if (sys.argv[1] == 'poly'):
         polynomial_kernel.c = float(sys.argv[2])
         polynomial_kernel.d = int(sys.argv[3])
@@ -55,14 +56,13 @@ def test_mnist():
     print("SVM training size is: {}".format(svm_train_x.shape))
     print("SVM testing size is: {}".format(svm_test_x.shape))
 
-    sample_nums = svm_train_x.shape[1]
-
+    sample_nums = svm_train_x.shape[1]    
     
     print("Init SVM and GRAM Matrix...")
     svm = SVM(sample_nums, svm_train_x, svm_train_label, kernel)
     print("Initialization successful")
     print("Start training...")
-    svm.train(C=1, max_iter=50, epsilon=0.00001)
+    svm.train(C=1, max_iter=60, epsilon=0.000001)
     print("Training successful")
     
     print("Start testing...")
@@ -114,7 +114,7 @@ class SVM:
                 self.Gram[j][i] = self.Gram[i][j]
         
         self.update_pred()
-        #print(self.Gram)
+        print(self.Gram)
 
         # intrinsic variables
         self.feature_sz = train_x.shape[0]
@@ -321,7 +321,7 @@ def generate_data(category, train_x, train_labels, test_x, test_labels,
     
     if pos_size == None:
         pos_size = temp_train_x_pos.shape[1]
-    selected_rows = range(pos_size) #random.sample(range(temp_train_x_pos.shape[1]),k=pos_size)
+    selected_rows = random.sample(range(temp_train_x_pos.shape[1]),k=pos_size) #range(pos_size)
 
     temp_train_x_pos = temp_train_x_pos[:, selected_rows]
     temp_train_label_pos = temp_train_label_pos[:, selected_rows]
@@ -332,7 +332,7 @@ def generate_data(category, train_x, train_labels, test_x, test_labels,
 
     if false_size == None:
         false_size = temp_train_x_false.shape[1]
-    selected_rows = range(false_size) #random.sample(range(temp_train_x_false.shape[1]),k=false_size)
+    selected_rows = random.sample(range(temp_train_x_false.shape[1]),k=false_size) #range(false_size) 
 
     temp_train_x_false = temp_train_x_false[:, selected_rows]
     temp_train_label_false = temp_train_label_false[:, selected_rows]
