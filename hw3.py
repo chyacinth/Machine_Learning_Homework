@@ -59,7 +59,7 @@ def test_mnist():
     svm = SVM(sample_nums, svm_train_x, svm_train_label, polynomial_kernel)
     print("Initialization successful")
     print("Start training...")
-    svm.train(max_iter=150, epsilon=0.1)
+    svm.train(C=0.7, max_iter=40, epsilon=0.0001)
     print("Training successful")
 
     #print(svm.test(svm_train_x, svm_train_label))
@@ -131,9 +131,13 @@ class SVM:
         self.max_iter = max_iter
         self.epsilon = epsilon
         
+        real_it = 0
         iteration = 0
         
         while iteration < self.max_iter:
+            pair_changed = 0
+
+        #while iteration < self.max_iter:
             # select Wi and Wj to update. Select those make |E1-E2| maximal            
             i = 0
             for i in random.sample(range(self.N),k=self.N):
@@ -172,21 +176,41 @@ class SVM:
                 Wj_new = self.clip(Wj_new, L, H)
                 Wi_new = Wi_old + yi * yj * (Wj_old - Wj_new)
                 self.W[j] = Wj_new
-                self.W[i] = Wi_new                                 
+                self.W[i] = Wi_new
+
+                if abs(Wj_new - Wj_old) < 0.00001:
+                    continue
+
                 bi_new = -Ei - yi * self.Gram[i][i] * (Wi_new - Wi_old) - yj * self.Gram[j][i] * (Wj_new - Wj_old) + self.b#+ Wi_old * yi * self.Gram[i][i] + Wj_old * yj * self.Gram[j][i] + self.b - \
                              #       Wi_new * yi * self.Gram[i][i] - Wj_new * yj * self.Gram[j][i]
                 
                 bj_new = -Ej - yi * self.Gram[i][j] * (Wi_new - Wi_old) - yj * self.Gram[j][j] * (Wj_new - Wj_old) + self.b #yi * self.Gram[i][j] * (Wi_new - Wi_old) - \
                                 #yj * self.Gram[j][j] * (Wj_new - Wj_old) + self.b
                 
-                b_new = (bi_new + bj_new) / 2
+                if 0 < Wi_new < self.C:
+                    b_new = bi_new
+                elif 0 < Wj_new < C:
+                    b_new = bj_new
+                else:
+                    b_new = (bi_new + bj_new) / 2
+                    
                 self.b = b_new
                 self.update_pred()
+                
+                pair_changed += 1            
 
-            iteration += 1            
-            if iteration % 30 == 0:
-                print("{}th iteration finishes".format(iteration))
-            if iteration % 5 == 0:
+            if pair_changed == 0:
+                iteration += 1
+            else:
+                iteration = 0
+
+
+            real_it += 1            
+
+            if real_it % 30 == 0:
+                print("{}th iteration finishes".format(real_it))
+
+            if real_it % 5 == 0:
                 KKT_satisfy = True
                 if ((self.W >= (0 - self.epsilon)) & (self.W <= (self.C + self.epsilon))).size > 0:
                     KKT_satisfy = False
