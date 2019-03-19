@@ -38,8 +38,8 @@ def test_multi_class_svm():
         prediction = 0
         for j in range(categories):
             res = svms[j].pred(test_x.T[i])
-            if maxi < abs(res):
-                maxi = abs(res)
+            if maxi < res:
+                maxi = res
                 prediction = j
         if prediction == test_labels[0][i]:
             correct += 1
