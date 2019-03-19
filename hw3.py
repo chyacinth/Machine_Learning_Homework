@@ -47,12 +47,12 @@ def test_multi_class_svm():
     print("accuracy is: {}".format(correct/test_size))
 
 def test_mnist_with_category(category, train_x, train_labels, test_x, test_labels):    
-    radical_basis_kernel.sigma = 3
+    radical_basis_kernel.sigma = 5
     print("sigma is {}".format(radical_basis_kernel.sigma))
     kernel = radical_basis_kernel
     
-    positive_sample_num = 1000
-    false_sample_num = 1000
+    positive_sample_num = 500
+    false_sample_num = 700
     test_pos_num = 5
     test_false_num = 7
 
@@ -100,8 +100,8 @@ def test_mnist():
     
     category = 1
     
-    positive_sample_num = 500
-    false_sample_num = 700
+    positive_sample_num = 50
+    false_sample_num = 200
     test_pos_num = None
     test_false_num = None
 
