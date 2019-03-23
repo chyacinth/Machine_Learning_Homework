@@ -7,6 +7,93 @@ from datetime import datetime
 import sys
 
 #random.seed(datetime.now())
+def main():
+    x = loadmat('digits.mat')
+    test_imgs = x['testImages']
+    train_imgs = x['trainImages']
+    test_labels = x['testLabels'].astype(np.int8)
+    train_labels = x['trainLabels'].astype(np.int8)
+    test_imgs = test_imgs.reshape(784, 10000)
+    train_imgs = train_imgs.reshape(784, 60000)
+    avg = train_imgs.mean(axis=1).reshape(784)
+    maxi = train_imgs.max(axis=1).reshape(784)
+    mini = train_imgs.min(axis=1).reshape(784)
+    maxmin = (maxi[:, None] - mini[:, None])
+    test_x = np.divide((test_imgs - avg[:, None]), maxmin, where=maxmin!=0)
+    train_x = np.divide((train_imgs - avg[:, None]), maxmin, where=maxmin!=0)        
+
+
+    category_true = [0]
+    category_false = [1,2,3,4,5,6,7,8,9]
+    print("category true: {}".format(category_true))
+    print("category false: {}".format(category_false))
+    test_given_class_svm(train_x, train_labels, test_x, test_labels, category_true,
+    category_false)
+
+    category_true = [7]
+    category_false = [0,1,2,3,4,5,6,8,9]
+    print("category true: {}".format(category_true))
+    print("category false: {}".format(category_false))
+    test_given_class_svm(train_x, train_labels, test_x, test_labels, category_true,
+    category_false)
+
+
+    category_true = [4]
+    category_false = [9]
+    print("category true: {}".format(category_true))
+    print("category false: {}".format(category_false))
+    test_given_class_svm(train_x, train_labels, test_x, test_labels, category_true,
+    category_false)
+
+
+    category_true = [0]
+    category_false = [8]
+    print("category true: {}".format(category_true))
+    print("category false: {}".format(category_false))
+    test_given_class_svm(train_x, train_labels, test_x, test_labels, category_true,
+    category_false)
+
+
+    category_true = [0,8,3]
+    category_false = [1,7,9]
+    print("category true: {}".format(category_true))
+    print("category false: {}".format(category_false))
+    test_given_class_svm(train_x, train_labels, test_x, test_labels, category_true,
+    category_false)
+
+def test_given_class_svm(train_x, train_labels, test_x, test_labels,
+        category_true, category_false):
+
+    print(test_x.shape)    
+
+    svm = test_mnist_with_given_category(category_true, category_false,
+        1000, 1000, train_x, train_labels)
+
+    print("Start Testing")
+    final_svm_test_x = None
+
+    for category in category_true:
+        (svm_test_x, svm_test_label) = \
+        generate_training_given_category(category, 1, test_x, test_labels, None)
+        if final_svm_test_x is None:
+            final_svm_test_x = svm_test_x
+            final_svm_test_label = svm_test_label
+        else:
+            final_svm_test_x = np.concatenate((final_svm_test_x, svm_test_x), axis=1)
+            final_svm_test_label = np.concatenate((final_svm_test_label, svm_test_label), axis=1)
+
+    for category in category_false:
+        (svm_test_x, svm_test_label) = \
+        generate_training_given_category(category, -1, test_x, test_labels, None)
+        if final_svm_test_x is None:
+            final_svm_test_x = svm_test_x
+            final_svm_test_label = svm_test_label
+        else:
+            final_svm_test_x = np.concatenate((final_svm_test_x, svm_test_x), axis=1)
+            final_svm_test_label = np.concatenate((final_svm_test_label, svm_test_label), axis=1)
+
+    svm.test(final_svm_test_x, final_svm_test_label)    
+    print("End Testing")
 
 def test_multi_class_svm():
     x = loadmat('digits.mat')
@@ -83,6 +170,65 @@ def test_mnist_with_category(category, train_x, train_labels, test_x, test_label
     #print("Testing successful")
     return svm
 
+def test_mnist_with_given_category(category_pos, category_false, 
+        positive_sample_num, false_sample_num, 
+        train_x, train_labels):
+    radical_basis_kernel.sigma = 5
+    print("sigma is {}".format(radical_basis_kernel.sigma))
+    kernel = radical_basis_kernel
+    
+    positive_per_num = int(positive_sample_num / len(category_pos))
+    false_per_num = int(false_sample_num / len(category_false))
+
+    print("positive_sample_num: {}".format(positive_sample_num))
+    print("false_sample_num: {}".format(false_sample_num))
+    print("Start generating data...")
+    final_svm_train_x = None
+    final_svm_train_label = None
+    for category in category_pos:
+        (svm_train_x, svm_train_label) = \
+            generate_training_given_category(category, 1, train_x, train_labels, positive_per_num)
+
+        if final_svm_train_x is None:
+            final_svm_train_x = svm_train_x
+            final_svm_train_label = svm_train_label
+        else:
+            final_svm_train_x = np.concatenate((final_svm_train_x, svm_train_x), axis=1)
+            final_svm_train_label = np.concatenate((final_svm_train_label, svm_train_label), axis=1)
+    
+    for category in category_false:
+        (svm_train_x, svm_train_label) = \
+        generate_training_given_category(category, -1, train_x, train_labels, false_per_num)
+        if final_svm_train_x is None:
+            final_svm_train_x = svm_train_x
+            final_svm_train_label = svm_train_label
+        else:
+            final_svm_train_x = np.concatenate((final_svm_train_x, svm_train_x), axis=1)
+            final_svm_train_label = np.concatenate((final_svm_train_label, svm_train_label), axis=1)
+
+    final_train_sz = final_svm_train_x.shape[1]
+
+    selected_rows = random.sample(range(final_train_sz),k=final_train_sz)
+
+    final_svm_train_x = final_svm_train_x[:, selected_rows]
+    final_svm_train_label = final_svm_train_label[:, selected_rows]
+
+    print("Generating data successful...")    
+    print("SVM training size is: {}".format(final_svm_train_x.shape))
+
+    sample_nums = final_svm_train_x.shape[1]    
+    
+    print("Init SVM and GRAM Matrix...")
+    svm = SVM(sample_nums, final_svm_train_x, final_svm_train_label, kernel)
+    print("Initialization successful")
+    print("Start training...")
+    svm.train(C=1, max_iter=60, epsilon=0.000001)
+    print("Training successful")
+    
+    #print("Start testing...")
+    #print(svm.test(svm_test_x, svm_test_label))
+    #print("Testing successful")
+    return svm
 
 def test_mnist():
     kernel = None
@@ -453,6 +599,23 @@ def generate_data(category, train_x, train_labels, test_x, test_labels,
 
     return (svm_train_x, svm_train_label, svm_test_x, svm_test_label)
 
+def generate_training_given_category(category, label, train_x, train_labels,
+                    pos_size = None):
+    # Generating training data for SVM
+
+    temp_train_x_pos = train_x[:, (train_labels == category)[0]]
+    temp_train_label_pos = train_labels[:, (train_labels == category)[0]]
+    temp_train_label_pos[:, :] = label
+    
+    if pos_size == None:
+        pos_size = temp_train_x_pos.shape[1]
+    selected_rows = random.sample(range(temp_train_x_pos.shape[1]),k=pos_size) #range(pos_size)
+
+    temp_train_x_pos = temp_train_x_pos[:, selected_rows]
+    temp_train_label_pos = temp_train_label_pos[:, selected_rows]
+        
+    return (temp_train_x_pos, temp_train_label_pos)
+
 def test_xor():
     train_x = np.array([[-1, 1, -1, 1], [-1, -1, 1, 1]])
     train_labels = np.array([[-1, 1, 1, -1]])    
@@ -465,5 +628,5 @@ def test_xor():
 
 
 print("--------------------Begin----------------------")
-test_multi_class_svm()
+main()
 print("---------------------End-----------------------")
