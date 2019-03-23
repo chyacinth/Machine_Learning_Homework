@@ -173,7 +173,7 @@ def test_mnist_with_category(category, train_x, train_labels, test_x, test_label
 def test_mnist_with_given_category(category_pos, category_false, 
         positive_sample_num, false_sample_num, 
         train_x, train_labels):
-    radical_basis_kernel.sigma = 5
+    radical_basis_kernel.sigma = 3
     print("sigma is {}".format(radical_basis_kernel.sigma))
     kernel = radical_basis_kernel
     

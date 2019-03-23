@@ -14,4 +14,4 @@
 # run the executable named a.out
 module load python3/3.7.0
 
-python3 hw.py
+python3 hw3.py
