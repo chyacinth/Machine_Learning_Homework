@@ -122,8 +122,8 @@ def prepare_test_data(train_size, test_size):
     test_x = np.divide((test_imgs - avg[:, None]), maxmin, where=maxmin!=0)
     train_x = np.divide((train_imgs - avg[:, None]), maxmin, where=maxmin!=0)
     
-    test_size_all = test_x.shape[0]
-    train_size_all = train_x.shape[0]
+    test_size_all = test_x.shape[1]
+    train_size_all = train_x.shape[1]
 
     test_selected_rows = random.sample(range(test_size_all),k=test_size)
     train_selected_rows = random.sample(range(train_size_all),k=train_size)
