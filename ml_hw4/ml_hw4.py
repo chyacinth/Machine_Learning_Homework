@@ -138,7 +138,8 @@ def test(network, test_x, test_labels, test_size):
             #print(prediction)
             #print(label)
             #print()
-    print("plain accuracy: {}".format(correct / sz))
+    print("Accuracy: {}".format(correct / sz))
+    return correct / sz
 
 def main():
     #random.seed(3614)
@@ -175,22 +176,28 @@ def main():
     test_size = args.test_size
     structure = args.network
     lr = args.lr
-    epochs = args.epochs
-    print(structure)
+    epochs = args.epochs    
+
+    max_acc = 0
 
     train_x, train_labels, test_x, test_labels = prepare_test_data(train_size, test_size)
     network = Network(structure, sigmoid, 10, lr, bias=True)
     for epoch in range(epochs):
         indexes = random.sample(range(train_size),k=train_size)
+        mse = 0
         for i in indexes:
-            mse = network.train_once(train_x.T[i],train_labels[0][i],one_hot=True)
+            mse += network.train_once(train_x.T[i],train_labels[0][i],one_hot=True)
 
         if ((epoch + 1) % 100 ==0):
             print("epoch {} completes".format(epoch + 1))
             print("mse is: {}".format(mse))
+            t = test(network, train_x, train_labels, train_size)
+            if max_acc < t:
+                max_acc = t
     
     #test(network, test_x, test_labels, test_size)
     test(network, train_x, train_labels, train_size)
+    print("max accuracy is: {}".format(max_acc))
 
 if __name__ == "__main__":
     #cProfile.run('main()')
