@@ -191,10 +191,10 @@ def main():
     train_x, train_labels, test_x, test_labels = prepare_test_data(train_size, test_size)
     network = Network(structure, sigmoid, 10, lr, bias=True)
     for epoch in range(epochs):
-        indexes = random.sample(range(train_size),k=train_size)        
+        indexes = random.sample(range(train_size),k=train_size)
         for i in indexes:
             mse = network.train_once(train_x.T[i],train_labels[0][i],one_hot=True)
-        mse /= train_size
+                    
         if ((epoch + 1) % 1 ==0):
             print("epoch {} completes".format(epoch + 1))
             print("mse is: {}".format(mse))
