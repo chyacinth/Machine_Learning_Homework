@@ -24,7 +24,6 @@ class Layer:
             self.output = None    
             self.derivative = np.zeros(self.out_num, self.in_num)
             self.gpwx = None
-            self.lam = None            
         else:
             self.in_num = in_num + 1
             self.out_num = out_num
@@ -35,8 +34,7 @@ class Layer:
             self.input = None
             self.output = None
             self.derivative = np.zeros((self.out_num, self.in_num))
-            self.gpwx = None
-            self.lam = None
+            self.gpwx = None            
 
         self.wx = None
 
@@ -51,21 +49,22 @@ class Layer:
         return self.output
     
     def update_delta_w(self, lam):        
-        assert not self.input is None, "Input is None!"
-        self.lam = lam
+        assert not self.input is None, "Input is None!"        
         #wx = np.matmul(self.W, self.input)
         self.gpwx = self.activation(self.wx, deri=True)
         gpld = self.gpwx * lam
-        if self.bias:
-            reduced_inp = self.input[:-1]
-            self.derivative[:, :-1] = np.multiply(gpld[:, None], np.tile(reduced_inp, (self.out_num, 1)))
-            self.derivative[:, -1] = gpld
-        else:
-            self.derivative = np.multiply(gpld[:, None], np.tile(self.input, (self.out_num, 1)))
-    
-    def get_lambda(self, lam):
-        assert np.array_equal(self.lam, lam), "Run update_delta_w before get_lambda"
 
+        self.derivative = np.multiply(gpld[:, None], np.tile(self.input, (self.out_num, 1)))
+
+        #if self.bias:
+            #reduced_inp = self.input[:-1]
+            #self.derivative[:, :-1] = np.multiply(gpld[:, None], np.tile(reduced_inp, (self.out_num, 1)))
+            #self.derivative[:, -1] = gpld
+            
+        #else:
+        #    self.derivative = np.multiply(gpld[:, None], np.tile(self.input, (self.out_num, 1)))
+    
+    def get_lambda(self, lam):        
         if not self.bias:
             return np.matmul(-self.W.T, self.gpwx)
         else:
