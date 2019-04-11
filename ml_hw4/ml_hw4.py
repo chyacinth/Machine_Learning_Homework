@@ -14,29 +14,23 @@ def sigmoid(x, deri=False):
 class Layer:
     def __init__(self, in_num, out_num, activation, lr, bias):
         self.bias = bias
-        if not self.bias:
-            self.in_num = in_num
-            self.out_num = out_num
-            self.lr = lr
-            self.activation = activation
-            self.W = np.random.uniform(-1, 1, (self.out_num, self.in_num))
-            self.input = None
-            self.output = None    
-            self.derivative = np.zeros(self.out_num, self.in_num)
-            self.gpwx = None
-        else:
-            self.in_num = in_num + 1
-            self.out_num = out_num
-            self.lr = lr
-            self.activation = activation            
-            self.W = np.random.uniform(-1, 1, (self.out_num, self.in_num))            
-            # print(self.W)
-            self.input = None
-            self.output = None
-            self.derivative = np.zeros((self.out_num, self.in_num))
-            self.gpwx = None            
+        self.in_num = in_num
 
+        if self.bias:
+            self.in_num += 1
+
+        self.out_num = out_num
+        self.lr = lr
+        self.activation = activation            
+        self.W = np.random.uniform(-1, 1, (self.out_num, self.in_num))
+        # print(self.W)
+        self.input = None
+        self.output = None
+        self.derivative = np.zeros((self.out_num, self.in_num))
+
+        self.gpwx = None            
         self.wx = None
+        self.gpld = None
 
     def forward(self, inp):
         if self.bias:
@@ -45,30 +39,26 @@ class Layer:
         self.input = inp
         #self.input = np.append(self.input, 1)
         self.wx = np.matmul(self.W, self.input)
+        self.wx = np.squeeze(self.wx)
         self.output = self.activation(self.wx)
         return self.output
     
-    def update_delta_w(self, lam):        
+    def update_delta_w(self, lam):
         assert not self.input is None, "Input is None!"        
-        #wx = np.matmul(self.W, self.input)
+        lam = np.squeeze(lam)
+        # gprime
         self.gpwx = self.activation(self.wx, deri=True)
-        gpld = self.gpwx * lam
+        self.gpld = self.gpwx * lam
 
-        self.derivative = np.multiply(gpld[:, None], np.tile(self.input, (self.out_num, 1)))
-
-        #if self.bias:
-            #reduced_inp = self.input[:-1]
-            #self.derivative[:, :-1] = np.multiply(gpld[:, None], np.tile(reduced_inp, (self.out_num, 1)))
-            #self.derivative[:, -1] = gpld
-            
-        #else:
-        #    self.derivative = np.multiply(gpld[:, None], np.tile(self.input, (self.out_num, 1)))
+        self.derivative = np.outer(self.gpld, self.input)
     
-    def get_lambda(self, lam):        
+    def get_lambda(self):
+        lam = np.matmul(self.W.T, np.reshape(self.gpld, (self.out_num, 1)))
+        lam = np.squeeze(lam)
         if not self.bias:
-            return np.matmul(-self.W.T, self.gpwx)
+            return lam
         else:
-            return np.matmul(-self.W.T, self.gpwx)[:-1]
+            return lam[:-1]
 
     
     def update_w(self):
@@ -105,7 +95,7 @@ class Network:
         lam = output - expect
         for layer in reversed(self.layers):
             layer.update_delta_w(lam)
-            lam = layer.get_lambda(lam)
+            lam = layer.get_lambda()
 
         for layer in self.layers:
             layer.update_w()
@@ -194,7 +184,7 @@ def main():
         indexes = random.sample(range(train_size),k=train_size)
         for i in indexes:
             mse = network.train_once(train_x.T[i],train_labels[0][i],one_hot=True)
-                    
+
         if ((epoch + 1) % 1 ==0):
             print("epoch {} completes".format(epoch + 1))
             print("mse is: {}".format(mse))
