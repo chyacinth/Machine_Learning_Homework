@@ -185,7 +185,7 @@ def main():
         for i in indexes:
             mse = network.train_once(train_x.T[i],train_labels[0][i],one_hot=True)
 
-        if ((epoch + 1) % 1 ==0):
+        if ((epoch + 1) % 100 ==0):
             print("epoch {} completes".format(epoch + 1))
             print("mse is: {}".format(mse))
     
