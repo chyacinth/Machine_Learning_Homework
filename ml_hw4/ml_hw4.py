@@ -88,6 +88,7 @@ class Network:
 
         output = self.forward(inp)
         self.back_propagation(output, exp)
+        return ((output - exp)**2).mean()
 
     def forward(self, inp, one_hot = False):        
         output = inp
@@ -189,9 +190,11 @@ if __name__ == "__main__":
     for epoch in range(epochs):
         indexes = random.sample(range(train_size),k=train_size)        
         for i in indexes:
-            network.train_once(train_x.T[i],train_labels[0][i],one_hot=True)
+            mse = network.train_once(train_x.T[i],train_labels[0][i],one_hot=True)
+        mse /= train_size
         if ((epoch + 1) % 50 ==0):
-            print("epoch {} completes".format(epoch + 1))
+            print("epoch {} completes".format(epoch + 1))        
+            print("mse is: {}".format(mse))
     
     #test(network, test_x, test_labels, test_size)
     test(network, train_x, train_labels, train_size)
