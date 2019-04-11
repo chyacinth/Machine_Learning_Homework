@@ -2,6 +2,7 @@ import numpy as np
 import random
 from scipy.io import loadmat
 import argparse
+import cProfile
 
 def sigmoid(x, deri=False):
     if deri:
@@ -21,9 +22,9 @@ class Layer:
             self.W = np.random.uniform(-1, 1, (self.out_num, self.in_num))
             self.input = None
             self.output = None    
-            self.derivative = None
+            self.derivative = np.zeros(self.out_num, self.in_num)
             self.gpwx = None
-            self.lam = None
+            self.lam = None            
         else:
             self.in_num = in_num + 1
             self.out_num = out_num
@@ -33,9 +34,11 @@ class Layer:
             # print(self.W)
             self.input = None
             self.output = None
-            self.derivative = None
+            self.derivative = np.zeros((self.out_num, self.in_num))
             self.gpwx = None
             self.lam = None
+
+        self.wx = None
 
     def forward(self, inp):
         if self.bias:
@@ -43,21 +46,22 @@ class Layer:
 
         self.input = inp
         #self.input = np.append(self.input, 1)
-        self.output = self.activation(np.matmul(self.W, self.input))
+        self.wx = np.matmul(self.W, self.input)
+        self.output = self.activation(self.wx)
         return self.output
     
     def update_delta_w(self, lam):        
         assert not self.input is None, "Input is None!"
         self.lam = lam
-        wx = np.matmul(self.W, self.input)
-        self.gpwx = self.activation(wx, deri=True)
+        #wx = np.matmul(self.W, self.input)
+        self.gpwx = self.activation(self.wx, deri=True)
         gpld = self.gpwx * lam
         if self.bias:
             reduced_inp = self.input[:-1]
-            self.derivative = np.matmul(np.diag(gpld), np.tile(reduced_inp, (self.out_num, 1)))
-            self.derivative = np.column_stack((self.derivative, gpld))
+            self.derivative[:, :-1] = np.multiply(gpld[:, None], np.tile(reduced_inp, (self.out_num, 1)))
+            self.derivative[:, -1] = gpld
         else:
-            self.derivative = np.matmul(np.diag(gpld), np.tile(self.input, (self.out_num, 1)))
+            self.derivative = np.multiply(gpld[:, None], np.tile(self.input, (self.out_num, 1)))
     
     def get_lambda(self, lam):
         assert np.array_equal(self.lam, lam), "Run update_delta_w before get_lambda"
@@ -70,7 +74,7 @@ class Layer:
     
     def update_w(self):
         self.W = self.W - self.lr * self.derivative
-        self.derivative.fill(0)
+        #self.derivative(0)
 
 class Network:
     def __init__(self, neurals, activation, label_nums, lr=0.05, bias=False):
@@ -147,7 +151,7 @@ def test(network, test_x, test_labels, test_size):
             #print()
     print("plain accuracy: {}".format(correct / sz))
 
-if __name__ == "__main__":
+def main():
     #random.seed(3614)
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -192,9 +196,13 @@ if __name__ == "__main__":
         for i in indexes:
             mse = network.train_once(train_x.T[i],train_labels[0][i],one_hot=True)
         mse /= train_size
-        if ((epoch + 1) % 50 ==0):
-            print("epoch {} completes".format(epoch + 1))        
+        if ((epoch + 1) % 1 ==0):
+            print("epoch {} completes".format(epoch + 1))
             print("mse is: {}".format(mse))
     
     #test(network, test_x, test_labels, test_size)
     test(network, train_x, train_labels, train_size)
+
+if __name__ == "__main__":
+    #cProfile.run('main()')
+    main()
