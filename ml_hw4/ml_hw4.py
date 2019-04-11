@@ -191,7 +191,8 @@ def main():
         if ((epoch + 1) % 100 ==0):
             print("epoch {} completes".format(epoch + 1))
             print("mse is: {}".format(mse))
-            t = test(network, train_x, train_labels, train_size)
+            #t = test(network, train_x, train_labels, train_size)
+            t = test(network, test_x, test_labels, test_size)
             if max_acc < t:
                 max_acc = t
     
