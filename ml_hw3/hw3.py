@@ -3,7 +3,6 @@ import numpy as np
 import random
 from numpy import linalg as LA
 import math
-from datetime import datetime
 import sys
 
 #random.seed(datetime.now())
@@ -20,7 +19,7 @@ def main():
     mini = train_imgs.min(axis=1).reshape(784)
     maxmin = (maxi[:, None] - mini[:, None])
     test_x = np.divide((test_imgs - avg[:, None]), maxmin, where=maxmin!=0)
-    train_x = np.divide((train_imgs - avg[:, None]), maxmin, where=maxmin!=0)        
+    train_x = np.divide((train_imgs - avg[:, None]), maxmin, where=maxmin!=0)
 
 
     category_true = [0]
