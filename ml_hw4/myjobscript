@@ -1,0 +1,19 @@
+#!/bin/bash
+#SBATCH -J myMPI            # job name
+#SBATCH -o svm_assign1.o        # output and error file name (%j expands to jobID)
+#SBATCH -N 1                # number of nodes requested
+#SBATCH -n 1               # total number of mpi tasks requested
+#SBATCH -p normal      # queue (partition) -- normal, development, etc.
+#SBATCH -t 2:00:00         # run time (hh:mm:ss) - 1.5 hours
+
+# Slurm email notifications are now working on Lonestar 5 
+#SBATCH --mail-user=chyacinthz@gmail.com
+#SBATCH --mail-type=begin   # email me when the job starts
+#SBATCH --mail-type=end     # email me when the job finishes
+
+# run the executable named a.out
+module load python3/3.7.0
+
+cd ~/xychen/Machine_Learning_Homework/
+
+python3 ml_hw4/ml_hw4.py -network 784 300 10 -train_size 3000 -test_size 10 -lr 2e-4 -epochs 20000
