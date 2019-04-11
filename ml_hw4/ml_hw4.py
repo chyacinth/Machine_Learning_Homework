@@ -188,13 +188,14 @@ def main():
         for i in indexes:
             mse += network.train_once(train_x.T[i],train_labels[0][i],one_hot=True)
 
-        if ((epoch + 1) % 100 ==0):
+        if ((epoch + 1) % 50 ==0):
             print("epoch {} completes".format(epoch + 1))
             print("mse is: {}".format(mse))
             #t = test(network, train_x, train_labels, train_size)
-            t = test(network, test_x, test_labels, test_size)
+            t = test(network, test_x, test_labels, test_size)            
             if max_acc < t:
                 max_acc = t
+            print("max accuracy is: {}".format(max_acc))
     
     #test(network, test_x, test_labels, test_size)
     test(network, train_x, train_labels, train_size)
