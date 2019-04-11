@@ -1,6 +1,7 @@
 import numpy as np
 import random
 from scipy.io import loadmat
+import argparse
 
 def sigmoid(x, deri=False):
     if deri:
@@ -17,7 +18,7 @@ class Layer:
             self.out_num = out_num
             self.lr = lr
             self.activation = activation
-            self.W = np.random.uniform(-2, 2, (self.out_num, self.in_num))
+            self.W = np.random.uniform(-1, 1, (self.out_num, self.in_num))
             self.input = None
             self.output = None    
             self.derivative = None
@@ -28,7 +29,7 @@ class Layer:
             self.out_num = out_num
             self.lr = lr
             self.activation = activation            
-            self.W = np.random.uniform(-2, 2, (self.out_num, self.in_num))            
+            self.W = np.random.uniform(-1, 1, (self.out_num, self.in_num))            
             # print(self.W)
             self.input = None
             self.output = None
@@ -53,12 +54,12 @@ class Layer:
         gpld = self.gpwx * lam
         if self.bias:
             reduced_inp = self.input[:-1]
-            self.derivative = np.matmul(np.diag(gpld), np.tile(reduced_inp, (self.out_num, 1)))            
-            self.derivative = np.column_stack((self.derivative, self.gpwx))
+            self.derivative = np.matmul(np.diag(gpld), np.tile(reduced_inp, (self.out_num, 1)))
+            self.derivative = np.column_stack((self.derivative, gpld))
         else:
             self.derivative = np.matmul(np.diag(gpld), np.tile(self.input, (self.out_num, 1)))
     
-    def get_lambda(self, lam):        
+    def get_lambda(self, lam):
         assert np.array_equal(self.lam, lam), "Run update_delta_w before get_lambda"
 
         if not self.bias:
@@ -106,7 +107,7 @@ class Network:
             layer.update_w()
 
 def prepare_test_data(train_size, test_size):    
-    x = loadmat('../digits.mat')
+    x = loadmat('digits.mat')
     test_imgs = x['testImages']
     train_imgs = x['trainImages']
     test_labels = x['testLabels'].astype(np.int8)
@@ -146,12 +147,45 @@ def test(network, test_x, test_labels, test_size):
     print("plain accuracy: {}".format(correct / sz))
 
 if __name__ == "__main__":
-    random.seed(3614)
-    train_size = 10
-    test_size = 10
+    #random.seed(3614)
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-network",
+        nargs="+",  # expects ≥ 0 arguments
+        type=int,
+        # default=[35, 40, 50, 60, 70, 80, 90],  # default list if no arg value
+    )
+    parser.add_argument(
+        "-train_size",
+        nargs="?",  # expects ≥ 0 arguments
+        type=int,
+    )
+    parser.add_argument(
+        "-test_size",
+        nargs="?",  # expects ≥ 0 arguments
+        type=int,
+    )
+    parser.add_argument(
+        "-lr",
+        nargs="?",  # expects ≥ 0 arguments
+        type=float,
+    )
+    parser.add_argument(
+        "-epochs",
+        nargs="?",  # expects ≥ 0 arguments
+        type=int,
+    )    
+
+    args = parser.parse_args()
+    train_size = args.train_size
+    test_size = args.test_size
+    structure = args.network
+    lr = args.lr
+    epochs = args.epochs
+    print(structure)
+
     train_x, train_labels, test_x, test_labels = prepare_test_data(train_size, test_size)
-    network = Network([784,300,10], sigmoid, 10, 0.01, bias=True)
-    epochs = 5000
+    network = Network(structure, sigmoid, 10, lr, bias=True)
     for epoch in range(epochs):
         indexes = random.sample(range(train_size),k=train_size)        
         for i in indexes:
