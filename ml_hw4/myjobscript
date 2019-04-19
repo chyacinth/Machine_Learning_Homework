@@ -1,10 +1,10 @@
 #!/bin/bash
 #SBATCH -J myMPI            # job name
-#SBATCH -o hw4.o        # output and error file name (%j expands to jobID)
+#SBATCH -o hw4_final.o        # output and error file name (%j expands to jobID)
 #SBATCH -N 1                # number of nodes requested
 #SBATCH -n 1               # total number of mpi tasks requested
 #SBATCH -p normal      # queue (partition) -- normal, development, etc.
-#SBATCH -t 6:00:00         # run time (hh:mm:ss) - 1.5 hours
+#SBATCH -t 8:00:00         # run time (hh:mm:ss) - 1.5 hours
 
 # Slurm email notifications are now working on Lonestar 5 
 #SBATCH --mail-user=chyacinthz@gmail.com
@@ -16,6 +16,12 @@ module load python3/3.7.0
 
 cd ~/xychen/Machine_Learning_Homework/
 
-python3 ml_hw4/ml_hw4.py -network 784 300 10 -train_size 60000 -test_size 10000 -lr 0.005 -epochs 600
+python3 ml_hw4/ml_hw4.py -network 784 300 10 -train_size 60000 -test_size 10000 -lr 0.1 -epochs 200 -batch_size 64 -activation sigmoid -loss=square
+python3 ml_hw4/ml_hw4.py -network 784 300 10 -train_size 60000 -test_size 10000 -lr 0.1 -epochs 200 -batch_size 64 -activation tanh -loss=square
+python3 ml_hw4/ml_hw4.py -network 784 300 10 -train_size 60000 -test_size 10000 -lr 0.1 -epochs 200 -batch_size 64 -activation relu -loss=square
+python3 ml_hw4/ml_hw4.py -network 784 300 10 -train_size 60000 -test_size 10000 -lr 0.1 -epochs 200 -batch_size 64 -activation selu -loss=square
 
-python3 ml_hw4/ml_hw4.py -network 784 300 10 -train_size 60000 -test_size 10000 -lr 0.001 -epochs 600
+python3 ml_hw4/ml_hw4.py -network 784 300 10 -train_size 60000 -test_size 10000 -lr 0.1 -epochs 200 -batch_size 64 -activation sigmoid -loss=cross_entropy
+python3 ml_hw4/ml_hw4.py -network 784 300 10 -train_size 60000 -test_size 10000 -lr 0.1 -epochs 200 -batch_size 64 -activation tanh -loss=cross_entropy
+python3 ml_hw4/ml_hw4.py -network 784 300 10 -train_size 60000 -test_size 10000 -lr 0.1 -epochs 200 -batch_size 64 -activation relu -loss=cross_entropy
+python3 ml_hw4/ml_hw4.py -network 784 300 10 -train_size 60000 -test_size 10000 -lr 0.1 -epochs 200 -batch_size 64 -activation selu -loss=cross_entropy
