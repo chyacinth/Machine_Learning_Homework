@@ -16,6 +16,6 @@ module load python3/3.7.0
 
 cd ~/xychen/Machine_Learning_Homework/
 
-python3 ml_hw4/ml_hw4.py -network 784 300 10 -train_size 40000 -test_size 100000 -lr 5e-4 -epochs 30000
+python3 ml_hw4/ml_hw4.py -network 784 300 10 -train_size 60000 -test_size 10000 -lr 0.005 -epochs 600
 
-python3 ml_hw4/ml_hw4.py -network 784 300 10 -train_size 40000 -test_size 100000 -lr 2e-4 -epochs 30000
+python3 ml_hw4/ml_hw4.py -network 784 300 10 -train_size 60000 -test_size 10000 -lr 0.001 -epochs 600

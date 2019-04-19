@@ -25,6 +25,28 @@ def sigmoid(x, deri=False):
     else:
         return 1/(1 + np.exp(-x))
 
+def tanh(x, deri=False):
+    if deri:
+        fx = tanh(x)
+        return 1 - np.square(fx)
+    else:
+        return np.tanh*x()
+
+def relu(x, deri=False):
+    if deri:
+        return 1 * (x > 0)        
+    else:
+        return x * (x > 0)        
+
+def selu(x, deri=False):
+    alpha = 1.67326
+    lam = 1.0507
+    if deri:
+        return lam * (x >= 0) + lam * alpha * np.exp(x) * (x < 0)
+        
+    else:
+        return lam * x * (x >= 0) + lam * alpha * (np.exp(x) - 1) * (x < 0)
+
 class Layer:
     def __init__(self, in_num, out_num, activation, lr, bias, batch_size):
         self.bias = bias
@@ -89,12 +111,13 @@ class Layer:
         #self.derivative(0)
 
 class Network:
-    def __init__(self, neurals, activation, label_nums, lr=0.05, batch_size = 10, bias=False):
+    def __init__(self, neurals, activation, label_nums, lr, batch_size, loss, bias=False):
         self.bias = bias
         self.label_nums = int(label_nums)
         self.layers = []
         self.batch_size = batch_size
         self.lr = lr
+        self.loss = loss
         for inp, outp in zip(neurals, neurals[1:]):
             self.layers.append(Layer(inp, outp, activation, self.lr, self.bias, self.batch_size))
 
@@ -106,7 +129,11 @@ class Network:
 
         output = self.forward(inp)
         self.back_propagation(output, exp)
-        return np.sum((output - exp)**2) / self.label_nums
+        if self.loss == 'square':
+            return np.sum((output - exp)**2)
+        else:
+            ce = -np.log(self.softmax(output)) * exp
+            return np.sum(ce)
 
     def forward(self, inp, force_batch_size=None, one_hot=False):
         output = inp
@@ -116,8 +143,16 @@ class Network:
             return np.argmax(output,axis=0)
         return output
 
+    def softmax(self, x):        
+        exps = np.exp(x)        
+        return exps / np.sum(exps, axis=0)
+
     def back_propagation(self, output, expect):
-        lam = output - expect
+        if self.loss == 'square':
+            lam = output - expect
+        elif self.loss == 'cross_entropy':            
+            lam = self.softmax(output) - expect
+
         for layer in reversed(self.layers):
             layer.update_delta_w(lam)
             lam = layer.get_lambda()
@@ -146,8 +181,8 @@ def prepare_test_data(train_size, test_size):
 
     #print(train_size_all)
     #print(test_size_all)
-    print(train_size)
-    print(test_size)
+    #print(train_size)
+    #print(test_size)
     test_selected_rows = random.sample(range(test_size_all),k=test_size)
     train_selected_rows = random.sample(range(train_size_all),k=train_size)
 
@@ -164,6 +199,7 @@ def test(network, test_x, test_labels, test_size):
 
 def main():
     #random.seed(3614)
+    print 
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-network",
@@ -201,30 +237,52 @@ def main():
         type=int,
         default=64
     )
+    parser.add_argument(
+        "-activation",        
+        default='sigmoid',
+        choices=['sigmoid','tanh','relu','selu']
+    )
+    parser.add_argument(
+        "-loss",        
+        default='square',
+        choices=['square', 'cross_entropy']
+    )
 
     args = parser.parse_args()
+    print(args)
     train_size = args.train_size
     test_size = args.test_size
     structure = args.network
     lr = args.lr
     batch_size = args.batch_size
     epochs = args.epochs
+    num_labels = 10
+    activation = None
+    if args.activation == 'sigmoid':
+        activation = sigmoid
+    elif args.activation == 'tanh':
+        activation = tanh
+    elif args.activation == 'relu':
+        activation = relu
+    elif args.activation == 'selu':
+        activation = selu
+    loss = args.loss
 
     max_acc = 0
 
     train_x, train_labels, test_x, test_labels = prepare_test_data(train_size, test_size)
-    network = Network(structure, sigmoid, 10, lr, batch_size, bias=True)
+    network = Network(structure, activation, num_labels, lr, batch_size, loss, bias=True)
     # t = test(network, test_x, test_labels, test_size)
     for epoch in range(epochs):
         indexes = random.sample(range(train_size),k=train_size)        
         indexes += random.sample(range(train_size),k= batch_size - (train_size % batch_size))
         mse = 0
-        for i in chunk(iter(indexes), batch_size):            
+        for i in chunk(iter(indexes), batch_size):
             mse += network.train_once(train_x[:, i],train_labels[0][i],one_hot=True)
 
         mse /= train_size
 
-        if ((epoch + 1) % 20 ==0):
+        if ((epoch + 1) % 8 ==0):
             print("epoch {} completes".format(epoch + 1))
             print("mse is: {}".format(mse))
             #t = test(network, train_x, train_labels, train_size)
