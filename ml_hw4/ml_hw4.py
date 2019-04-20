@@ -30,13 +30,13 @@ def tanh(x, deri=False):
         fx = tanh(x)
         return 1 - np.square(fx)
     else:
-        return np.tanh*x()
+        return np.tanh(x)
 
 def relu(x, deri=False):
     if deri:
-        return 1 * (x > 0)        
+        return 1 * (x > 0)
     else:
-        return x * (x > 0)        
+        return x * (x > 0)
 
 def selu(x, deri=False):
     alpha = 1.67326
@@ -59,7 +59,8 @@ class Layer:
         self.out_num = out_num
         self.lr = lr
         self.activation = activation            
-        self.W = np.random.uniform(-1, 1, (self.out_num, self.in_num))
+        self.W = np.random.uniform(-0.3, 0.3, (self.out_num, self.in_num))
+        self.W[:, self.in_num - 1] = 0
         # print(self.W)
         self.input = None
         self.output = None
@@ -84,7 +85,7 @@ class Layer:
         self.output = self.activation(self.wx)
         return self.output
     
-    def update_delta_w(self, lam, force_batch_size=None):
+    def update_delta_w(self, lam):
         assert not self.input is None, "Input is None!"
         # lam = np.squeeze(lam)
         # gprime
@@ -92,10 +93,8 @@ class Layer:
         self.gpld = self.gpwx * lam
         
         self.derivative = np.einsum('ik,jk->ij', self.gpld, self.input)
-        if force_batch_size is None:
-            self.derivative /= self.batch_size
-        else:
-            self.derivative /= force_batch_size
+        
+        self.derivative /= self.batch_size        
         #self.derivative = np.outer(self.gpld, self.input)
     
     def get_lambda(self):
@@ -143,8 +142,9 @@ class Network:
             return np.argmax(output,axis=0)
         return output
 
-    def softmax(self, x):        
-        exps = np.exp(x)        
+    def softmax(self, x):
+        exps = np.exp(x)
+
         return exps / np.sum(exps, axis=0)
 
     def back_propagation(self, output, expect):
@@ -282,7 +282,7 @@ def main():
 
         mse /= train_size
 
-        if ((epoch + 1) % 8 ==0):
+        if ((epoch + 1) % 1 ==0):
             print("epoch {} completes".format(epoch + 1))
             print("mse is: {}".format(mse))
             #t = test(network, train_x, train_labels, train_size)
